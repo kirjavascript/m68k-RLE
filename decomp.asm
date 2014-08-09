@@ -4,23 +4,19 @@ SNKDec:
     	;d2 = VRAM address
 	;a1 = compressed art to write to VRAM
 SNKDecToVRAM:
-	move.w	d2,d0
-	and.w	#$3FFF,d0
-	or.w	#$4000,d0
-	swap	d0
-	lsl.l #2,d2
-	swap d2
-	andi.w #3,d2
-	move.w	d2,d0
+	lsl.l	#2,d2 ; Moves all bits around, putting the top ones in (word-swapped) place
+	addq.w	#1,d2 ; Bit for write
+	ror.w	#2,d2 ; Move bits in low word to (word-swapped) place
+	swap d2       ; Put all bits in the proper place
+	andi.w #3,d2  ; Remove junk that might have been at the top half of d2
 	lea	(VDP_data_port).l,a2
-	move.l d0,$4(a2) ;(VDP_control_port).l
+	move.l d2,$4(a2) ;(VDP_control_port).l
 SNKDecMain:	
 	;16 words = 1 tile
 	moveq #0,d0
 	moveq #0,d1
 	move.w	(a1)+,d1 
 	lsl.l   #5,d1 ;number of uncompressed bytes
-	add.w d1,d2 ;set end VRAM address for output
 	lsr.l #1,d1 ;number of uncompressed words
 	
 	move.b	(a1)+,d3
